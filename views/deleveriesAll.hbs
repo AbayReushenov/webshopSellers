@@ -1,0 +1,32 @@
+<h3>Your buscet</h3>
+<ul>
+  {{#each buscet}}
+  <li>
+    Name : {{this.good.name}} <i class="fas fa-border-none"></i>
+    Art : {{this.good.art}}<i class="fas fa-border-none"></i>
+    Price : {{this.good.priceIn}} <i class="fas fa-border-none"></i>
+    Quantity :{{this.quantity}}
+  </li>
+  {{/each}}
+</ul>
+
+<h3>Store</h3>
+<ul>
+  {{#each deliveriesAll}}
+  <li><img src="{{this.good.pic}}" alt="..." class="img">
+    <i class="fas fa-file">The delivery ID: </i>{{this._id}} <i class="fas fa-border-none"></i>
+    Name : {{this.good.name}} <i class="fas fa-border-none"></i>
+    Art : {{this.good.art}}<i class="fas fa-border-none"></i>
+    Price : {{this.good.priceIn}} <i class="fas fa-border-none"></i>
+    Quantity :{{this.quantity}}
+  </li>
+  <li>
+    <form action="/buyer/edit/{{this._id}}" method="POST">
+      <input type="number" step="1" min="0" max="{{this.quantity}}" name="quantity" value="0">
+{{!--       <i class="fas fa-money-check-alt">Your buscet now </i>{{buscet.quantity}} --}}
+      <button type="submit" class="btn btn-success"><i class="far fa-edit"> Send to my buscet</i></button>
+    </form>
+  </li>
+  <hr>
+  {{/each}}
+</ul>

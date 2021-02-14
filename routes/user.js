@@ -32,7 +32,8 @@ router.post('/', async (req, res) => {
 });
 
 router.get('/buyer', buyerAccess, (req, res) => {
-  res.render('buyers');
+  const _id = req.session.UserID;
+  res.redirect(`/buyer/${_id}`);
 });
 
 router.get('/seller', sellerAccess, (req, res) => {

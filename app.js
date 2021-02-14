@@ -10,6 +10,7 @@ const hbs = require('hbs');
 const indexRouter = require('./routes/index');
 const userRouter = require('./routes/user');
 const sellerRouter = require('./routes/seller');
+const buyerRouter = require('./routes/buyer');
 
 const app = express();
 const port = process.env.PORT ?? 3000;
@@ -36,6 +37,7 @@ app.use(session(sessionConfig));
 app.use('/', indexRouter);
 app.use('/user', userRouter);
 app.use('/seller', sellerRouter);
+app.use('/buyer', buyerRouter);
 
 app.listen(port, () => {
   console.log(`Сервер успешно запущен на порту ${port}.`);
