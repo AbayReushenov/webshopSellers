@@ -1,0 +1,17 @@
+<ul>
+  {{#each deliveries}}
+  <li><img src="{{this.good.pic}}" alt="..." class="img">
+  <i class="fas fa-file">The delivery ID: </i>{{this._id}} <i class="fas fa-border-none"></i>
+    Name : {{this.good.name}} <i class="fas fa-border-none"></i>
+    Art : {{this.good.art}}<i class="fas fa-border-none"></i>
+    Price : {{this.good.priceIn}} <i class="fas fa-border-none"></i>
+    Quantity :{{this.quantity}}
+  </li>
+  <li><i class="fas fa-money-check-alt">Summ: </i>{{this.summ}}</li>
+  <form action="/seller/edit/{{this._id}}">
+    <button type="submit" class="btn btn-success"><i class="far fa-edit"> Edit</i></button>
+  </form>
+
+  <hr>
+  {{/each}}
+</ul>
