@@ -1,106 +1,120 @@
 /* eslint-disable no-unreachable */
 /* eslint-disable no-underscore-dangle */
 const router = require('express').Router();
-// const bcrypt = require('bcrypt');
-// const Buyer = require('../models/buyer');
 const Buscet = require('../models/buscet');
 const buyerAccess = require('../middleware/buyerAccess');
-const Good = require('../models/good');
-const Store = require('../models/store');
 const Delivery = require('../models/delivery');
 
 router.get('/:id', buyerAccess, async (req, res) => {
-  const buyerID = req.params.id;
+  const currentbuyerID = req.params.id;
   const deliveriesAll = await Delivery.find().populate('good').lean();
-  const buscet = await Buscet.find({ buyer: buyerID }).populate('good').lean();
-  res.render('deleveriesAll', { deliveriesAll, buscet });
+  const buscet = await Buscet.find({ buyer: currentbuyerID })
+    .populate('good')
+    .lean();
+  res.render('deleveriesAll', { deliveriesAll, buscet, currentbuyerID });
 });
 
-router.post('/edit/:id', buyerAccess, async (req, res) => {
-  const { id } = req.params;
+router.post('/edit/:idDelivery', buyerAccess, async (req, res) => {
+  const currentbuyerID = req.session.UserID;
+  const { idDelivery } = req.params;
   const { quantity } = req.body;
-  console.log(id, quantity);
-  const oldDelivery = await Delivery.findById(id);
-  const newQuantity = oldDelivery.quantity - quantity;
-  const editDelivery = await Delivery.findByIdAndUpdate(
-    id,
+  if (quantity <= 0) {
+    return res.redirect(`/buyer/${currentbuyerID}`);
+  }
+  const oldDelivery = await Delivery.findById(idDelivery);
+  const newQuantity = Number(oldDelivery.quantity) - Number(quantity);
+  const updateDelivery = await Delivery.findByIdAndUpdate(
+    idDelivery,
     {
       quantity: newQuantity,
     },
-    { new: true },
+    { new: true }
   );
-  console.log(editDelivery);
 
-  return res.redirect('/buyer');
+  const findGoodInBuscet = await Buscet.findOne({
+    good: updateDelivery.good,
+    buyer: currentbuyerID,
+  });
 
-  // const editFood = await Good.findByIdAndUpdate(
-  //   editDelivery.good._id,
-  //   {
-  //     name,
-  //     art,
-  //     priceIn,
-  //     pic,
-  //   },
-  //   { new: true }
-  // );
-  // console.log(editFood);
+  if (findGoodInBuscet) {
+    const buscetQuantity = Number(findGoodInBuscet.quantity) + Number(quantity);
+    await Buscet.findByIdAndUpdate(
+      findGoodInBuscet._id,
+      {
+        quantity: buscetQuantity,
+      },
+      { new: true }
+    );
+  } else if (!findGoodInBuscet) {
+    await Buscet.create({
+      good: updateDelivery.good,
+      buyer: currentbuyerID,
+      quantity,
+    });
+  }
 
-  // await Store.findOneAndUpdate(
-  //   { good: editFood._id },
-  //   {
-  //     quantity: editDelivery.quantity,
-  //   },
-  //   { new: true }
-  // );
-  // let deliveries = await Delivery.find({ seller: editDelivery.seller._id })
-  //   .populate('good')
-  //   .lean();
-  // deliveries = deliveries.map((el) => ({
-  //   ...el,
-  //   summ: el.quantity * el.good.priceIn,
-  // }));
-  // console.log('---------------------1', editDelivery.seller._id, deliveries);
-  // return res.redirect(`/seller/${editDelivery.seller._id}`);
+  return res.redirect(`/buyer/${currentbuyerID}`);
 });
 
-// router.post('/new/add/:id', sellerAccess, async (req, res) => {
-//   const { name, art, pic, priceIn, quantity } = req.body;
-//   const { id } = req.params;
-//   const newGood = await Good.create({
-//     name,
-//     art,
-//     priceIn,
-//     pic,
-//   });
-//   const newDelivery = await Delivery.create({
-//     quantity,
-//     seller: id,
-//     good: newGood._id,
-//     done: false,
-//   });
-//   await Store.create({
-//     quantity: newDelivery.quantity,
-//     good: newDelivery.good,
-//   });
-//   let deliveries = await Delivery.find({ seller: req.params.id })
-//     .populate('good')
-//     .lean();
-//   deliveries = deliveries.map((el) => ({
-//     ...el,
-//     summ: el.quantity * el.good.priceIn,
-//   }));
+router.post('/buscet/:idBuscet', buyerAccess, async (req, res) => {
+  const currentbuyerID = req.session.UserID;
+  const { idBuscet } = req.params;
+  const { quantity } = req.body;
+  const oldBuscet = await Buscet.findById(idBuscet);
+  const gapQuantity = Number(quantity) - Number(oldBuscet.quantity);
+  if (gapQuantity === 0) {
+    return res.redirect(`/buyer/${currentbuyerID}`);
+  }
 
-//   res.render('deliveriesNew', {
-//     id,
-//     deliveries,
-//   });
-// });
+  const oldDelivery = await Delivery.findOne({ good: oldBuscet.good });
+  const newQuantityDelivery = oldDelivery.quantity - gapQuantity;
+  await Delivery.findByIdAndUpdate(
+    oldDelivery._id,
+    {
+      quantity: newQuantityDelivery,
+    },
+    { new: true },
+  );
+  await Buscet.findByIdAndUpdate(
+    oldBuscet._id,
+    {
+      quantity,
+    },
+    { new: true },
+  );
 
-// router.get('/edit/:id', sellerAccess, async (req, res) => {
-//   const { id } = req.params;
-//   const deliveryOne = await Delivery.findById(id).populate('good').lean();
+  return res.redirect(`/buyer/${currentbuyerID}`);
+});
 
-//   res.render('deliveryEdit', { deliveryOne });
-// });
+router.post('/delete/:idBuscet', buyerAccess, async (req, res) => {
+  const currentbuyerID = req.session.UserID;
+  const { idBuscet } = req.params;
+  const oldBuscet = await Buscet.findById(idBuscet);
+  const returnQuantity = Number(oldBuscet.quantity);
+  await Buscet.findByIdAndDelete(oldBuscet._id);
+  if (returnQuantity === 0) {
+    return res.redirect(`/buyer/${currentbuyerID}`);
+  }
+  const oldDelivery = await Delivery.findOne({ good: oldBuscet.good });
+  const newQuantityDelivery = Number(oldDelivery.quantity) + Number(returnQuantity);
+  await Delivery.findByIdAndUpdate(
+    oldDelivery._id,
+    {
+      quantity: newQuantityDelivery,
+    },
+    { new: true },
+  );
+  return res.redirect(`/buyer/${currentbuyerID}`);
+});
+
+router.get('checkout/:id', buyerAccess, async (req, res) => {
+  const currentbuyerID = req.params.id;
+  
+  const deliveriesAll = await Delivery.find().populate('good').lean();
+  const buscet = await Buscet.find({ buyer: currentbuyerID })
+    .populate('good')
+    .lean();
+  res.render('deleveriesAll', { deliveriesAll, buscet, currentbuyerID });
+});
 
 module.exports = router;

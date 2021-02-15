@@ -5,16 +5,16 @@
   <input type="text" name="name" value="{{deliveryOne.good.name}}">
 
   <label for="art" >Articul</label>
-  <input type="number" name="art" value="{{deliveryOne.good.art}}">
+  <input type="number" name="art" step="1" min="0" value="{{deliveryOne.good.art}}">
 
   <label for="pic">Picture</label>
   <input type="text" name="pic" value="{{deliveryOne.good.pic}}">
 
   <label for="priceIn">Price</label>
-  <input type="number" name="priceIn" value="{{deliveryOne.good.priceIn}}">
+  <input type="number" name="priceIn" step="1" min="0" value="{{deliveryOne.good.priceIn}}">
 
   <label for="quantity">Quantity</label>
-  <input type="number" name="quantity" value="{{deliveryOne.quantity}}">
+  <input type="number" name="quantity" step="1" min="0" value="{{deliveryOne.quantity}}">
 
   <button type="submit"><i class="fas fa-check-circle"> I agree to change this item</i></button>
 </form>
