@@ -20,7 +20,9 @@
   <hr>
   {{/each}}
 </ul>
-
+<form action="/buyer/checkout/{{UserID}}">
+    <input type="submit" value="checkout"/>
+</form>
 <h3>Store</h3>
 <ul>
   {{#each deliveriesAll}}

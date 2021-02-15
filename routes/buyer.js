@@ -4,6 +4,7 @@ const router = require('express').Router();
 const Buscet = require('../models/buscet');
 const buyerAccess = require('../middleware/buyerAccess');
 const Delivery = require('../models/delivery');
+const Checkout = require('../models/checkout');
 
 router.get('/:id', buyerAccess, async (req, res) => {
   const currentbuyerID = req.params.id;
@@ -73,14 +74,14 @@ router.post('/buscet/:idBuscet', buyerAccess, async (req, res) => {
     {
       quantity: newQuantityDelivery,
     },
-    { new: true },
+    { new: true }
   );
   await Buscet.findByIdAndUpdate(
     oldBuscet._id,
     {
       quantity,
     },
-    { new: true },
+    { new: true }
   );
 
   return res.redirect(`/buyer/${currentbuyerID}`);
@@ -96,25 +97,33 @@ router.post('/delete/:idBuscet', buyerAccess, async (req, res) => {
     return res.redirect(`/buyer/${currentbuyerID}`);
   }
   const oldDelivery = await Delivery.findOne({ good: oldBuscet.good });
-  const newQuantityDelivery = Number(oldDelivery.quantity) + Number(returnQuantity);
+  const newQuantityDelivery =
+    Number(oldDelivery.quantity) + Number(returnQuantity);
   await Delivery.findByIdAndUpdate(
     oldDelivery._id,
     {
       quantity: newQuantityDelivery,
     },
-    { new: true },
+    { new: true }
   );
   return res.redirect(`/buyer/${currentbuyerID}`);
 });
 
-router.get('checkout/:id', buyerAccess, async (req, res) => {
+router.get('/checkout/:id', buyerAccess, async (req, res) => {
   const currentbuyerID = req.params.id;
-  
-  const deliveriesAll = await Delivery.find().populate('good').lean();
-  const buscet = await Buscet.find({ buyer: currentbuyerID })
+  const buscet = await Buscet.find({ buyer: currentbuyerID });
+  await Checkout.insertMany(buscet);
+  await Buscet.deleteMany();
+  let checkout = await Checkout.find({ buyer: currentbuyerID })
     .populate('good')
     .lean();
-  res.render('deleveriesAll', { deliveriesAll, buscet, currentbuyerID });
+  checkout = checkout.map((el) => ({
+    ...el,
+    summ: el.quantity * el.good.priceIn,
+  }));
+  const allsummofcheckout = checkout.reduce((a, b) => a + b.summ, 0);
+
+  res.render('checkout', { checkout, currentbuyerID, allsummofcheckout });
 });
 
 module.exports = router;

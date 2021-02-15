@@ -1,0 +1,14 @@
+<h3>Your checkout, user {{currentbuyerID}}</h3>
+<h5>Total summ is {{allsummofcheckout}}</h5>
+<ul>
+  {{#each checkout}}
+  <li>
+    Name : {{this.good.name}} <i class="fas fa-border-none"></i>
+    Art : {{this.good.art}}<i class="fas fa-border-none"></i>
+    Price : {{this.good.priceIn}} <i class="fas fa-border-none"></i>
+    Quantity :{{this.quantity}} <i class="fas fa-border-none"></i>
+    Summ : {{this.summ}}
+  </li>
+  <hr>
+  {{/each}}
+</ul>
